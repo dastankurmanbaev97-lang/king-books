@@ -1,0 +1,30 @@
+import streamlit as st
+from transformers import pipeline
+
+# Заголовок страницы
+st.set_page_config(page_title="Summarizer - Главная мысль")
+st.title("📝 Извлечение главной мысли текста")
+st.write("Вставьте текст ниже, и нейросеть выделит самое важное.")
+
+# Загрузка модели (используем мультиязычную модель BART или T5)
+@st.cache_resource
+def load_model():
+    # Модель для суммаризации (поддерживает русский и английский)
+    return pipeline("summarization", model="facebook/bart-large-cnn")
+
+summarizer = load_model()
+
+# Поле для ввода текста
+input_text = st.text_area("Ваш текст:", height=300, placeholder="Введите длинную статью или документ...")
+
+if st.button("Выделить главное"):
+    if input_text.strip():
+        with st.spinner('Анализирую...'):
+            # Настройки длины результата
+            result = summarizer(input_text, max_length=130, min_length=30, do_sample=False)
+            summary = result[0]['summary_text']
+            
+            st.subheader("Главная мысль:")
+            st.success(summary)
+    else:
+        st.warning("Пожалуйста, введите текст.")
